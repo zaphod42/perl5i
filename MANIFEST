@@ -36,5 +36,6 @@ t/List-Util/shuffle.t
 t/List-Util/sum.t
 t/modern_perl.t
 t/Module-Load.t
+t/Moose.t
 t/time_compat.t
 t/y2038.t

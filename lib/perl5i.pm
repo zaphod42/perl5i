@@ -178,6 +178,28 @@ L<Module::Load> adds C<load> which will load a module from a scalar
 without requiring you to do funny things like C<eval require $module>.
 
 
+=head2 MooseX::Declare
+
+A real object-oriented system for Perl 5.  It combines L<Moose> with a
+clean syntax and method signatures.
+
+    use perl5i;
+    class Hello {
+        has location =>
+            is      => 'rw',
+            isa     => 'Str',
+            default => "World",
+        ;
+
+        method greeting(Str $salutation = "Hello") {
+            return sprintf "%s, %s!", $salutation, $self->location;
+        }
+    }
+
+    my $hello = Hello->new;
+    say $hello->greeting;    # Hello, world!
+            
+
 =head2 IO::Handle
 
 Turns filehandles into objects so you can call methods on them.  The
@@ -273,6 +295,7 @@ use parent 'autobox::List::Util';
 use parent 'autobox::Core';
 use parent 'autobox::dump';
 
+
 ## no critic (Subroutines::RequireArgUnpacking)
 sub import {
     my $class = shift;
@@ -290,7 +313,7 @@ sub import {
 
     load_in_caller( $caller => (
         ["CLASS"], ["Module::Load"], ["File::chdir"],
-        [English => qw(-no_match_vars)]
+        [English => qw(-no_match_vars)], ["MooseX::Declare"],
     ) );
 
     # Have to call both or it won't work.

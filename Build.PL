@@ -25,6 +25,7 @@ my $builder = MyBuild->new(
         'IPC::System::Simple' => '1.18',
         'autobox::Core'       => '0.6',
         parent                => '0.221',
+        'MooseX::Declare'     => '0.22',
 
         'autobox::dump'       => '20090426',
         'autobox::List::Util' => '20090429',
