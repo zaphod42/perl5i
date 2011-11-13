@@ -42,5 +42,12 @@ use Test::More;
     is $positional->get("param"), 42;
 }
 
+# Multple named parameters
+{
+    my $named = func(:$this, :$that) { return $this + $that; };
+    is $named->({ this => 42, that => 15 }), 57;
+    is $named->(42, 15), 57;
+}
+
 done_testing();
 
