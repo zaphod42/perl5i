@@ -65,7 +65,12 @@ sub parse_positional_proto {
 sub parse_named_proto {
     my ($proto) = @_;
     my @names = ($proto =~ /:\$(\w+)/g);
-    return join "", map { "my \$$_ = \$_[0]->{$_};" } @names;
+    return "my (" . join(",", map { "\$$_" } @names) . ");"
+        . "if (ref(\$_[0]) eq 'HASH') { "
+            . join("", map { "\$$_ = \$_[0]->{$_};" } @names)
+        . " } else { "
+            . "(" . join(",", map { "\$$_" } @names) . ") = \@_;"
+        . "}";
 }
 
 sub code_for {
