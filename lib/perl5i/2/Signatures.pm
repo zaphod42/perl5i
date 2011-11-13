@@ -49,28 +49,55 @@ sub parse_proto {
         $inject .= "my ${invocant} = shift;";
     }
 
-    $inject .= ($proto =~ /:\$/ 
-        ? parse_named_proto($proto)
-        : parse_positional_proto($proto));
+    my @specifications = proto_specifications($proto);
+    $inject .= ($proto =~ /:[\$\@]/
+        ? inject_named_proto(@specifications)
+        : inject_positional_proto($proto));
         
     return $inject;
 }
 
-sub parse_positional_proto {
+sub proto_specifications {
+    my $proto = shift;
+    return map { specification_of($_) } split /\s*,\s*/, $proto;
+}
+
+sub specification_of {
+    my $specification = shift;
+    if ($specification =~ /^\s*(:?)([\$\%\@])(\w+)\s*$/) {
+        return {
+            is_named => (not not $1),
+            sigil => $2,
+            name => $3,
+            identifier => "$2$3"
+        };
+    } else {
+        die "unparsable argument prototype: <$specification>";
+    }
+}
+
+sub inject_positional_proto {
     my ($proto) = @_;
     $proto //= '';
     return $proto ? "my ($proto) = \@_;" : '';
 }
 
-sub parse_named_proto {
-    my ($proto) = @_;
-    my @names = ($proto =~ /:\$(\w+)/g);
-    return "my (" . join(",", map { "\$$_" } @names) . ");"
+sub inject_named_proto {
+    my (@prototypes) = @_;
+    return "my (" . join(",", map { $_->{identifier} } @prototypes) . ");"
         . "if (ref(\$_[0]) eq 'HASH') { "
-            . join("", map { "\$$_ = \$_[0]->{$_};" } @names)
+            . join("", map { inject_named_proto_assign($_) } @prototypes)
         . " } else { "
-            . "(" . join(",", map { "\$$_" } @names) . ") = \@_;"
+            . "(" . join(",", map { $_->{identifier} } @prototypes) . ") = \@_;"
         . "}";
+}
+
+sub inject_named_proto_assign {
+    my $specification = shift;
+    if ($specification->{sigil} eq '@') {
+        return "$specification->{identifier} = \@{ \$_[0]->{$specification->{name}} };"
+    }
+    return "$specification->{identifier} = \$_[0]->{$specification->{name}};"
 }
 
 sub code_for {

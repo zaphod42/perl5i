@@ -49,5 +49,12 @@ use Test::More;
     is $named->(42, 15), 57;
 }
 
+# Named array
+{
+    my $named = func(:$that, :@this) { return [@this, $that]; };
+    is_deeply $named->({ this => [42, 43], that => 15 }), [42, 43, 15];
+    is_deeply $named->(15, 42, 43), [42, 43, 15];
+}
+
 done_testing();
 
