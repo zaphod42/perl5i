@@ -35,6 +35,12 @@ use Test::More;
     is $obj->get(), undef;
 }
 
+# Named func parameters
+{
+    func named(:$this) { return $this; }
+    is named({ this => 42 }), 42;
+}
+
 
 # Anonymous
 {

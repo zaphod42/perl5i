@@ -41,18 +41,32 @@ sub parse_proto {
     $self->{perl5i}{signature} = $proto;
 
     $proto =~ s/[\r\n]//g;
-    my $invocant = $self->{invocant};
 
     my $inject = '';
+    my $invocant = $self->{invocant};
     if( $invocant ) {
         $invocant = $1 if $proto =~ s{^(\$\w+):\s*}{};
         $inject .= "my ${invocant} = shift;";
     }
-    $inject .= "my ($proto) = \@_;" if defined $proto and length $proto;
 
+    $inject .= ($proto =~ /:\$/ 
+        ? parse_named_proto($proto)
+        : parse_positional_proto($proto));
+        
     return $inject;
 }
 
+sub parse_positional_proto {
+    my ($proto) = @_;
+    $proto //= '';
+    return $proto ? "my ($proto) = \@_;" : '';
+}
+
+sub parse_named_proto {
+    my ($proto) = @_;
+    my @names = ($proto =~ /:\$(\w+)/g);
+    return join "", map { "my \$$_ = \$_[0]->{$_};" } @names;
+}
 
 sub code_for {
     my ($self, $name) = @_;
